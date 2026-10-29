@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Security Toolkit">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#eef1ff"/><stop offset="1" stop-color="#dfe6ff"/></linearGradient>
+    <linearGradient id="sh" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7c9cff"/><stop offset=".55" stop-color="#4f6bed"/><stop offset="1" stop-color="#2f43c4"/></linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="120" fill="url(#bg)"/>
+  <path d="M256 70 106 126v104c0 96 64 168 150 194 86-26 150-98 150-194V126L256 70z" fill="url(#sh)"/>
+  <path d="M256 104 138 148v82c0 76 50 134 118 156 68-22 118-80 118-156v-82L256 104z" fill="none" stroke="#fff" stroke-opacity=".3" stroke-width="8"/>
+  <ellipse cx="200" cy="170" rx="44" ry="26" fill="#fff" opacity=".22" transform="rotate(-30 200 170)"/>
+  <circle cx="240" cy="236" r="58" fill="none" stroke="#fff" stroke-width="24"/>
+  <path d="m282 278 46 46" stroke="#fff" stroke-width="28" stroke-linecap="round"/>
+  <path d="m212 236 20 20 34-38" fill="none" stroke="#5fd9b6" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
