@@ -1,0 +1,94 @@
+# One-click security scan.
+# Runs automatically on pushes / pull requests / weekly, or manually:
+#   GitHub -> Actions -> "Security Scan" -> "Run workflow"
+#
+# Scanners (all free, all run in Docker, work for any language/stack):
+#   1. Gitleaks  - secrets committed to git (API keys, passwords, tokens)
+#   2. Semgrep   - insecure code patterns (SAST)
+#   3. Trivy     - vulnerable dependencies + Dockerfile/IaC misconfigurations
+#   4. OWASP ZAP - live scan of your running app (DAST) - only when a URL is given
+
+name: Security Scan
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  schedule:
+    - cron: "30 3 * * 1"   # Every Monday 09:00 IST
+  workflow_dispatch:
+    inputs:
+      target_url:
+        description: "Staging/test URL of your app for the live (ZAP) scan. Leave blank to skip."
+        required: false
+        default: ""
+      fail_on:
+        description: "Mark the run as failed if findings at or above this severity exist"
+        type: choice
+        options: [high, critical, medium, none]
+        default: high
+
+permissions:
+  contents: read
+
+env:
+  REPORT_DIR: security-reports
+  # Manual input wins; otherwise repo variables (Settings -> Secrets and variables -> Actions -> Variables)
+  TARGET_URL: ${{ github.event.inputs.target_url || vars.SECURITY_TARGET_URL }}
+  FAIL_ON: ${{ github.event.inputs.fail_on || vars.SECURITY_FAIL_ON || 'high' }}
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout code (full history for secret scanning)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Prepare report folder
+        run: |
+          mkdir -p "$REPORT_DIR"
+          chmod 777 "$REPORT_DIR"
+
+      - name: 1. Secrets scan (Gitleaks)
+        continue-on-error: true
+        run: |
+          docker run --rm -v "$PWD:/repo" \
+            -e GIT_CONFIG_COUNT=1 -e GIT_CONFIG_KEY_0=safe.directory -e GIT_CONFIG_VALUE_0='*' \
+            zricethezav/gitleaks:latest detect --source /repo --no-banner --redact \
+            --report-format json --report-path "/repo/$REPORT_DIR/gitleaks.json" --exit-code 0
+
+      - name: 2. Code scan (Semgrep SAST)
+        continue-on-error: true
+        run: |
+          docker run --rm -v "$PWD:/src" -w /src semgrep/semgrep:latest \
+            semgrep scan --config p/default --metrics off --quiet \
+            --exclude "$REPORT_DIR" --json --output "$REPORT_DIR/semgrep.json" .
+
+      - name: 3. Dependency & config scan (Trivy)
+        continue-on-error: true
+        run: |
+          docker run --rm -v "$PWD:/src" -w /src aquasec/trivy:latest \
+            fs --scanners vuln,misconfig --quiet --skip-dirs "$REPORT_DIR" \
+            --format json --output "$REPORT_DIR/trivy.json" .
+
+      - name: 4. Live app scan (OWASP ZAP baseline)
+        if: env.TARGET_URL != ''
+        continue-on-error: true
+        run: |
+          echo "Scanning $TARGET_URL (passive baseline scan - safe for staging)"
+          docker run --rm -v "$PWD/$REPORT_DIR:/zap/wrk:rw" ghcr.io/zaproxy/zaproxy:stable \
+            zap-baseline.py -t "$TARGET_URL" -J zap.json -r zap.html -I || true
+
+      - name: Build combined report
+        run: python3 security/summarize.py --dir "$REPORT_DIR" --fail-on "$FAIL_ON"
+
+      - name: Upload reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-reports
+          path: ${{ env.REPORT_DIR }}
+          retention-days: 30
