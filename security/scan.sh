@@ -7,6 +7,7 @@
 # Run from your project's root folder. Report opens at security-reports/report.html
 
 set -uo pipefail
+export MSYS_NO_PATHCONV=1   # keeps Docker paths working in Git Bash on Windows
 
 TARGET_URL="${1:-${SECURITY_TARGET_URL:-}}"
 FAIL_ON="${SECURITY_FAIL_ON:-high}"
@@ -60,6 +61,6 @@ python3 "$SCRIPT_DIR/summarize.py" --dir "$REPORT_DIR" --fail-on "$FAIL_ON"
 STATUS=$?
 
 echo -e "\nReport: $ROOT/$REPORT_DIR/report.html"
-( command -v open >/dev/null && open "$REPORT_DIR/report.html" ) || \
+[ -n "${NO_OPEN:-}" ] || ( command -v open >/dev/null && open "$REPORT_DIR/report.html" ) || \
 ( command -v xdg-open >/dev/null && xdg-open "$REPORT_DIR/report.html" >/dev/null 2>&1 ) || true
 exit $STATUS
