@@ -2,7 +2,7 @@
 
 # Security Testing Toolkit
 
-**Full guide with every command:** https://abhiramupadrashta.github.io/security-toolkit/
+**Video walkthrough + full guide:** https://abhiramupadrashta.github.io/security-toolkit/
 
 Part of [Bubbles Aro](https://abhiramupadrashta.github.io/) · free, open source, works with any language.
 
@@ -74,6 +74,17 @@ chmod +x security/scan.sh      # first time only
 ```
 
 The report opens automatically from `security-reports/report.html`.
+
+---
+
+## Scan your whole company GitHub
+
+```bash
+gh auth login                          # once
+./security/scan-org.sh your-company    # every repo -> org-reports/index.html
+```
+
+Windows: start Docker Desktop, then run the commands in **Git Bash**.
 
 ---
 
