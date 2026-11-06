@@ -2,9 +2,9 @@
 
 # Security Testing Toolkit
 
-**Video walkthrough + full guide:** https://abhiramupadrashta.github.io/security-toolkit/
+**Video walkthrough + full guide:** https://bubbles.foo.ng/security-toolkit/
 
-Part of [Bubbles Aro](https://abhiramupadrashta.github.io/) · free, open source, works with any language.
+Part of [Bubbles Aro](https://bubbles.foo.ng/) · free, open source, works with any language.
 
 Automated security testing for any app (Node, Python, Java, Go, PHP, React, Flutter, and more).
 It runs 4 free industry-standard scanners and gives you one combined report.
